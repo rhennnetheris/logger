@@ -85,12 +85,24 @@ func Debug(msg string, fields ...zap.Field) {
 	logger.zap.Debug(msg, fields...)
 }
 
+func DebugCtx(ctx context.Context, msg string, fields ...zap.Field) {
+	logger.WithContext(ctx).Debug(msg, fields...)
+}
+
 func Info(msg string, fields ...zap.Field) {
 	logger.zap.Info(msg, fields...)
 }
 
+func InfoCtx(ctx context.Context, msg string, fields ...zap.Field) {
+	logger.WithContext(ctx).Info(msg, fields...)
+}
+
 func Warn(msg string, fields ...zap.Field) {
 	logger.zap.Warn(msg, fields...)
+}
+
+func WarnCtx(ctx context.Context, msg string, fields ...zap.Field) {
+	logger.WithContext(ctx).Warn(msg, fields...)
 }
 
 func Error(msg string, err error, fields ...zap.Field) {
@@ -100,8 +112,16 @@ func Error(msg string, err error, fields ...zap.Field) {
 	logger.zap.Error(msg, fields...)
 }
 
+func ErrorCtx(ctx context.Context, msg string, err error, fields ...zap.Field) {
+	logger.WithContext(ctx).Error(msg, err, fields...)
+}
+
 func Fatal(msg string, fields ...zap.Field) {
 	logger.zap.Fatal(msg, fields...)
+}
+
+func FatalCtx(ctx context.Context, msg string, fields ...zap.Field) {
+	logger.WithContext(ctx).Fatal(msg, fields...)
 }
 
 func Trace(ctx context.Context, funcName string) func() {
