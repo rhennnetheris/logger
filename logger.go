@@ -186,12 +186,24 @@ func (l *Logger) Debug(msg string, fields ...zap.Field) {
 	l.zap.Debug(msg, fields...)
 }
 
+func (l *Logger) DebugCtx(ctx context.Context, msg string, fields ...zap.Field) {
+	l.WithContext(ctx).zap.Debug(msg, fields...)
+}
+
 func (l *Logger) Info(msg string, fields ...zap.Field) {
 	l.zap.Info(msg, fields...)
 }
 
+func (l *Logger) InfoCtx(ctx context.Context, msg string, fields ...zap.Field) {
+	l.WithContext(ctx).zap.Info(msg, fields...)
+}
+
 func (l *Logger) Warn(msg string, fields ...zap.Field) {
 	l.zap.Warn(msg, fields...)
+}
+
+func (l *Logger) WarnCtx(ctx context.Context, msg string, fields ...zap.Field) {
+	l.WithContext(ctx).zap.Warn(msg, fields...)
 }
 
 func (l *Logger) Error(msg string, err error, fields ...zap.Field) {
@@ -201,8 +213,19 @@ func (l *Logger) Error(msg string, err error, fields ...zap.Field) {
 	l.zap.Error(msg, fields...)
 }
 
+func (l *Logger) ErrorCtx(ctx context.Context, msg string, err error, fields ...zap.Field) {
+	if err != nil {
+		fields = append(fields, zap.Error(err))
+	}
+	l.WithContext(ctx).zap.Error(msg, fields...)
+}
+
 func (l *Logger) Fatal(msg string, fields ...zap.Field) {
 	l.zap.Fatal(msg, fields...)
+}
+
+func (l *Logger) FatalCtx(ctx context.Context, msg string, fields ...zap.Field) {
+	l.WithContext(ctx).zap.Fatal(msg, fields...)
 }
 
 func (l *Logger) Trace(ctx context.Context, funcName string) func() {
@@ -235,13 +258,14 @@ func (l *Logger) newZap() (*Logger, error) {
 		zapFields = append(zapFields, zap.String("version", l.versionName))
 	}
 
-	if l.env == Development {
+	switch l.env {
+	case Development:
 		l, err := l.newZapDevelopment(zapFields...)
 		if err != nil {
 			return nil, err
 		}
 		return &Logger{zap: l}, nil
-	} else if l.env == Production {
+	case Production:
 		l, err := l.newZapProduction(zapFields...)
 		if err != nil {
 			return nil, err
