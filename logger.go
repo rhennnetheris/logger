@@ -260,17 +260,19 @@ func (l *Logger) newZap() (*Logger, error) {
 
 	switch l.env {
 	case Development:
-		l, err := l.newZapDevelopment(zapFields...)
+		zapLogger, err := l.newZapDevelopment(zapFields...)
 		if err != nil {
 			return nil, err
 		}
-		return &Logger{zap: l}, nil
+		l.zap = zapLogger
+		return l, nil
 	case Production:
-		l, err := l.newZapProduction(zapFields...)
+		zapLogger, err := l.newZapProduction(zapFields...)
 		if err != nil {
 			return nil, err
 		}
-		return &Logger{zap: l}, nil
+		l.zap = zapLogger
+		return l, nil
 	}
 
 	return nil, errors.New("invalid environment,  use development or production")
