@@ -4,7 +4,7 @@ go 1.24.2
 
 require (
 	github.com/natefinch/lumberjack v2.0.0+incompatible
-	go.uber.org/zap v1.27.0
+	go.uber.org/zap v1.27.1
 )
 
 require (

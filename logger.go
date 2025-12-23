@@ -32,6 +32,8 @@ type Logger struct {
 	requestKey string
 	// userKey 请求上下文的用户ID名称, 例如：user_id
 	userKey string
+	// logToFile 是否打印日志到文件, 默认是标准输出
+	logToFile bool
 	// rotate 是否开启日志文件分割, 默认不开启
 	rotate bool
 	// rotatePath 日志文件的路径, 默认是当前目录下的logs文件夹, 例如：./logs/run.log
@@ -77,6 +79,12 @@ func WithRequestKey(requestKey string) Option {
 func WithUserKey(userKey string) Option {
 	return func(l *Logger) {
 		l.userKey = userKey
+	}
+}
+
+func WithLogToFile(logToFile bool) Option {
+	return func(l *Logger) {
+		l.logToFile = logToFile
 	}
 }
 
@@ -149,6 +157,7 @@ func New(opts ...Option) (*Logger, error) {
 		versionName:    Version,
 		requestKey:     RequestKey,
 		userKey:        UserKey,
+		logToFile:      false,
 		rotate:         false,
 		rotatePath:     "logs/run.log",
 		rotateSize:     10,
@@ -288,6 +297,22 @@ func (l *Logger) newZapDevelopment(fields ...zap.Field) (*zap.Logger, error) {
 	// config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	config.EncoderConfig.EncodeTime = formatTime
 
+	if !l.logToFile {
+		encoder := zapcore.NewJSONEncoder(config.EncoderConfig)
+		core := zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), config.Level)
+
+		logger := zap.New(
+			core,
+			zap.AddCaller(),
+			zap.AddCallerSkip(1),
+			zap.AddStacktrace(zapcore.ErrorLevel),
+			zap.Fields(
+				fields...,
+			),
+		)
+		return logger, nil
+	}
+
 	if l.rotate {
 		logWriter := l.getLogWriter()
 		encoder := zapcore.NewJSONEncoder(config.EncoderConfig)
@@ -334,6 +359,22 @@ func (l *Logger) newZapProduction(fields ...zap.Field) (*zap.Logger, error) {
 	config.EncoderConfig.StacktraceKey = "stacktrace"
 	// config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	config.EncoderConfig.EncodeTime = formatTime
+
+	if !l.logToFile {
+		encoder := zapcore.NewJSONEncoder(config.EncoderConfig)
+		core := zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), config.Level)
+
+		logger := zap.New(
+			core,
+			zap.AddCaller(),
+			zap.AddCallerSkip(1),
+			zap.AddStacktrace(zapcore.ErrorLevel),
+			zap.Fields(
+				fields...,
+			),
+		)
+		return logger, nil
+	}
 
 	if l.rotate {
 		logWriter := l.getLogWriter()

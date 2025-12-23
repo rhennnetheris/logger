@@ -46,6 +46,7 @@ func Init(opts ...Option) error {
 		versionName:    Version,
 		requestKey:     RequestKey,
 		userKey:        UserKey,
+		logToFile:      false,
 		rotate:         false,
 		rotatePath:     "logs/run.log",
 		rotateSize:     10,
