@@ -24,6 +24,8 @@ const (
 type Logger struct {
 	// env 服务的环境, development or production
 	env string
+	// level 存储日志级别
+	level zapcore.Level
 	// serviceName 服务名, 例如：rhino_logger
 	serviceName string
 	// versionName 服务版本, 例如：v1.0.0
@@ -55,6 +57,12 @@ type Option func(*Logger)
 func WithEnv(env string) Option {
 	return func(l *Logger) {
 		l.env = env
+	}
+}
+
+func WithLevel(level zapcore.Level) Option {
+	return func(l *Logger) {
+		l.level = level
 	}
 }
 
@@ -127,6 +135,7 @@ func WithRotateCompress(rotateCompress bool) Option {
 func NewDevelopment() (*Logger, error) {
 	return New(
 		WithEnv(Development),
+		WithLevel(zapcore.DebugLevel),
 		WithServiceName(ServerName),
 		WithVersionName(Version),
 		WithRequestKey(RequestKey),
@@ -137,6 +146,7 @@ func NewDevelopment() (*Logger, error) {
 func NewProduction() (*Logger, error) {
 	return New(
 		WithEnv(Production),
+		WithLevel(zapcore.InfoLevel),
 		WithServiceName(ServerName),
 		WithVersionName(Version),
 		WithRequestKey(RequestKey),
@@ -153,6 +163,7 @@ func NewProduction() (*Logger, error) {
 func New(opts ...Option) (*Logger, error) {
 	l := &Logger{
 		env:            Development,
+		level:          zapcore.DebugLevel,
 		serviceName:    ServerName,
 		versionName:    Version,
 		requestKey:     RequestKey,
@@ -296,6 +307,8 @@ func (l *Logger) newZapDevelopment(fields ...zap.Field) (*zap.Logger, error) {
 	config.EncoderConfig.StacktraceKey = "stacktrace"
 	// config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	config.EncoderConfig.EncodeTime = formatTime
+	// 应用级别
+	config.Level = zap.NewAtomicLevelAt(l.level)
 
 	if !l.logToFile {
 		encoder := zapcore.NewJSONEncoder(config.EncoderConfig)
@@ -359,6 +372,8 @@ func (l *Logger) newZapProduction(fields ...zap.Field) (*zap.Logger, error) {
 	config.EncoderConfig.StacktraceKey = "stacktrace"
 	// config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	config.EncoderConfig.EncodeTime = formatTime
+	// 应用级别
+	config.Level = zap.NewAtomicLevelAt(l.level)
 
 	if !l.logToFile {
 		encoder := zapcore.NewJSONEncoder(config.EncoderConfig)
